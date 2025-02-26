@@ -1,6 +1,8 @@
+// File: frontend/src/utils/api.js
+
 import axios from "axios";
 
-const API_BASE_URL = "http://localhost:9000/api";
+const API_BASE_URL = "http://localhost:9000/api"; // Using port 9000
 
 const api = axios.create({
   baseURL: API_BASE_URL,

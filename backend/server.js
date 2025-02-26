@@ -1,3 +1,5 @@
+// File: backend/server.js
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -9,11 +11,21 @@ dotenv.config();
 // Initialize express app
 const app = express();
 
-// Middleware
-app.use(cors());
+// CORS configuration - Update this part
+app.use(
+  cors({
+    origin: "http://localhost:3000", // Your frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 
-// Define routes (we'll add these later)
+// Define routes
+const siteRoutes = require("./routes/siteRoutes");
+app.use("/api/sites", siteRoutes);
+
 app.get("/", (req, res) => {
   res.send("Web Element Monitor API is running");
 });
@@ -33,10 +45,6 @@ const connectDB = async () => {
 
 // Run the connection
 connectDB();
-
-// Add this after the existing middleware setup
-const siteRoutes = require("./routes/siteRoutes");
-app.use("/api/sites", siteRoutes);
 
 // Start server
 const PORT = process.env.PORT || 5000;
