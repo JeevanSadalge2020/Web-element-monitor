@@ -3,6 +3,9 @@
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
+import PageContextsPage from "./pages/PageContextsPage";
+import AddPageContextPage from "./pages/AddPageContextPage";
+import EditPageContextPage from "./pages/EditPageContextPage";
 
 // Import Pages
 import SitesPage from "./pages/sitesPage";
@@ -68,6 +71,7 @@ const Dashboard = () => (
   </div>
 );
 
+// Update your routes
 function App() {
   return (
     <Router>
@@ -77,6 +81,16 @@ function App() {
         <Route path="/sites" element={<SitesPage />} />
         <Route path="/sites/new" element={<AddSitePage />} />
         <Route path="/sites/:id/edit" element={<EditSitePage />} />
+        {/* Add these new routes */}
+        <Route path="/sites/:siteId/pages" element={<PageContextsPage />} />
+        <Route
+          path="/sites/:siteId/pages/new"
+          element={<AddPageContextPage />}
+        />
+        <Route
+          path="/sites/:siteId/pages/:pageId/edit"
+          element={<EditPageContextPage />}
+        />
       </Routes>
     </Router>
   );

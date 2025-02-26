@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FoodFast - Delicious Food Delivered</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      body {
+        background-color: #f9f9f9;
+        color: #333;
+      }
+
+      .header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+      }
+
+      .logo {
+        font-size: 24px;
+        font-weight: 700;
+        color: #ff6b35;
+        display: flex;
+        align-items: center;
+      }
+
+      .logo-icon {
+        margin-right: 8px;
+      }
+
+      .nav-links {
+        display: flex;
+        gap: 30px;
+      }
+
+      .nav-links a {
+        text-decoration: none;
+        color: #333;
+        font-weight: 500;
+        transition: color 0.3s;
+      }
+
+      .nav-links a:hover {
+        color: #ff6b35;
+      }
+
+      .cta-button {
+        background-color: #ff6b35;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 30px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .cta-button:hover {
+        background-color: #e55a2b;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+      }
+
+      .hero {
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        padding: 0 10%;
+        background-color: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .hero-content {
+        max-width: 550px;
+        z-index: 1;
+      }
+
+      .hero h1 {
+        font-size: 48px;
+        font-weight: 800;
+        margin-bottom: 20px;
+        color: #333;
+      }
+
+      .hero h1 span {
+        color: #ff6b35;
+      }
+
+      .hero p {
+        font-size: 18px;
+        line-height: 1.6;
+        margin-bottom: 30px;
+        color: #666;
+      }
+
+      .food-item {
+        position: absolute;
+        opacity: 0;
+        animation: float 15s infinite ease-in-out;
+      }
+
+      #pizza {
+        width: 120px;
+        height: 120px;
+        top: 20%;
+        right: 15%;
+        animation-delay: 0s;
+      }
+
+      #burger {
+        width: 100px;
+        height: 100px;
+        top: 60%;
+        right: 25%;
+        animation-delay: 3s;
+      }
+
+      #salad {
+        width: 110px;
+        height: 110px;
+        top: 35%;
+        right: 30%;
+        animation-delay: 6s;
+      }
+
+      #noodles {
+        width: 90px;
+        height: 90px;
+        top: 70%;
+        right: 10%;
+        animation-delay: 9s;
+      }
+
+      @keyframes float {
+        0% {
+          transform: translateY(100px) rotate(5deg);
+          opacity: 0;
+        }
+        10% {
+          opacity: 1;
+        }
+        50% {
+          transform: translateY(-100px) rotate(-5deg);
+          opacity: 1;
+        }
+        90% {
+          opacity: 1;
+        }
+        100% {
+          transform: translateY(-300px) rotate(10deg);
+          opacity: 0;
+        }
+      }
+
+      .search-bar {
+        display: flex;
+        width: 100%;
+        max-width: 500px;
+        height: 60px;
+        background: white;
+        border-radius: 30px;
+        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        margin-bottom: 30px;
+      }
+
+      .search-bar input {
+        flex: 1;
+        border: none;
+        outline: none;
+        padding: 0 20px;
+        font-size: 16px;
+      }
+
+      .search-bar button {
+        width: 60px;
+        background: #ff6b35;
+        border: none;
+        border-radius: 30px;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+
+      .search-bar button:hover {
+        background: #e55a2b;
+      }
+
+      .delivery-info {
+        display: flex;
+        gap: 20px;
+        margin-top: 30px;
+      }
+
+      .info-card {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .info-card svg {
+        color: #ff6b35;
+      }
+
+      .info-text {
+        font-weight: 600;
+      }
+
+      @media (max-width: 768px) {
+        .header {
+          padding: 15px 20px;
+        }
+
+        .nav-links {
+          display: none;
+        }
+
+        .hero {
+          padding: 0 5%;
+          text-align: center;
+        }
+
+        .hero-content {
+          max-width: 100%;
+        }
+
+        .hero h1 {
+          font-size: 36px;
+        }
+
+        .search-bar {
+          margin: 0 auto 30px;
+        }
+
+        .delivery-info {
+          flex-direction: column;
+          align-items: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header Section -->
+    <header class="header">
+      <div class="logo">
+        <svg
+          class="logo-icon"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M12 2L2 7L12 12L22 7L12 2Z" fill="#FF6B35" />
+          <path
+            d="M2 17L12 22L22 17"
+            stroke="#FF6B35"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+          <path
+            d="M2 12L12 17L22 12"
+            stroke="#FF6B35"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          />
+        </svg>
+        FoodFast
+      </div>
+      <nav class="nav-links">
+        <a href="#">Home</a>
+        <a href="#">Menu</a>
+        <a href="#">Restaurants</a>
+        <a href="#">About Us</a>
+      </nav>
+      <button class="cta-button">Order Now</button>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero">
+      <div class="hero-content">
+        <h1>Delicious Food <span>Delivered</span> To Your Door</h1>
+        <p>
+          Order your favorite meals from the best local restaurants and get them
+          delivered fast, fresh and hot. Just a few clicks away from a
+          delightful meal.
+        </p>
+
+        <div class="search-bar">
+          <input type="text" placeholder="What are you craving today?" />
+          <button>
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M21 21L15 15M17 10C17 13.866 13.866 17 10 17C6.13401 17 3 13.866 3 10C3 6.13401 6.13401 3 10 3C13.866 3 17 6.13401 17 10Z"
+                stroke="white"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+          </button>
+        </div>
+
+        <div class="delivery-info">
+          <div class="info-card">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M12 8V12L15 15M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                stroke="#FF6B35"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="info-text">Fast Delivery</span>
+          </div>
+          <div class="info-card">
+            <svg
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <path
+                d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z"
+                stroke="#FF6B35"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <span class="info-text">Quality Food</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Animated Food Items -->
+      <div id="pizza" class="food-item">
+        <svg
+          viewBox="0 0 512 512"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M512 256C512 397.385 397.385 512 256 512C114.615 512 0 397.385 0 256C0 114.615 114.615 0 256 0C397.385 0 512 114.615 512 256Z"
+            fill="#FFA800"
+          />
+          <path
+            d="M489.739 198.956C441.304 90.9566 349.565 21.1305 240 21.1305C101.565 21.1305 -18.7826 166.956 2.08696 312.348C22.9565 457.739 149.565 512 256 512C362.435 512 545.739 322.435 489.739 198.956Z"
+            fill="#FF8800"
+          />
+          <path
+            d="M458.435 172.522C416.696 79.3045 336.696 18.7827 240 18.7827C117.913 18.7827 12.1739 146.435 30.9566 274.087C49.7392 401.739 162.087 448.696 256 448.696C349.913 448.696 506.957 280.696 458.435 172.522Z"
+            fill="#FFA800"
+          />
+          <path
+            d="M448.348 163.478C409.044 76.9566 333.913 18.7827 240 18.7827C122.087 18.7827 22.9565 140.522 40.6956 261.565C58.4348 382.609 165.913 428.522 256 428.522C346.087 428.522 493.739 264.348 448.348 163.478Z"
+            fill="#FFCE00"
+          />
+          <ellipse
+            cx="173.026"
+            cy="127.027"
+            rx="29.2174"
+            ry="29.2174"
+            fill="#D10000"
+          />
+          <ellipse
+            cx="277.513"
+            cy="159.373"
+            rx="29.2174"
+            ry="29.2174"
+            fill="#D10000"
+          />
+          <ellipse
+            cx="133.287"
+            cy="261.565"
+            rx="29.2174"
+            ry="29.2174"
+            fill="#D10000"
+          />
+          <ellipse
+            cx="267.439"
+            cy="271.639"
+            rx="29.2174"
+            ry="29.2174"
+            fill="#D10000"
+          />
+          <ellipse
+            cx="356.704"
+            cy="243.826"
+            rx="29.2174"
+            ry="29.2174"
+            fill="#D10000"
+          />
+          <ellipse
+            cx="344.17"
+            cy="336.696"
+            rx="29.2174"
+            ry="29.2174"
+            fill="#D10000"
+          />
+          <ellipse
+            cx="204.852"
+            cy="336.696"
+            rx="29.2174"
+            ry="29.2174"
+            fill="#D10000"
+          />
+        </svg>
+      </div>
+
+      <div id="burger" class="food-item">
+        <svg
+          viewBox="0 0 512 512"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path
+            d="M471.273 320C471.273 331.046 462.319 340 451.273 340H60.7273C49.6817 340 40.7273 331.046 40.7273 320V300C40.7273 288.954 49.6817 280 60.7273 280H451.273C462.319 280 471.273 288.954 471.273 300V320Z"
+            fill="#FFB636"
+          />
+          <path
+            d="M451.273 400H60.7273C49.6817 400 40.7273 391.046 40.7273 380V360C40.7273 348.954 49.6817 340 60.7273 340H451.273C462.319 340 471.273 348.954 471.273 360V380C471.273 391.046 462.319 400 451.273 400Z"
+            fill="#FFB636"
+          />
+          <path
+            d="M451.273 280H60.7273C49.6817 280 40.7273 271.046 40.7273 260V220C40.7273 186.863 67.5903 160 100.727 160H411.273C444.41 160 471.273 186.863 471.273 220V260C471.273 271.046 462.319 280 451.273 280Z"
+            fill="#8C5F3C"
+          />
+          <path
+            d="M451.273 180C451.273 171.716 444.557 165 436.273 165H75.7273C67.4431 165 60.7273 171.716 60.7273 180V190C60.7273 198.284 67.4431 205 75.7273 205H436.273C444.557 205 451.273 198.284 451.273 190V180Z"
+            fill="#FF4A4A"
+          />
+          <path
+            d="M415.727 185H115.727C104.682 185 95.7273 176.046 95.7273 165C95.7273 153.954 104.682 145 115.727 145H415.727C426.773 145 435.727 153.954 435.727 165C435.727 176.046 426.773 185 415.727 185Z"
+            fill="#80D261"
+          />
+          <path
+            d="M175.727 380H115.727C104.682 380 95.7273 371.046 95.7273 360C95.7273 348.954 104.682 340 115.727 340H175.727C186.773 340 195.727 348.954 195.727 360C195.727 371.046 186.773 380 175.727 380Z"
+            fill="#FFE470"
+          />
+          <path
+            d="M315.727 380H255.727C244.682 380 235.727 371.046 235.727 360C235.727 348.954 244.682 340 255.727 340H315.727C326.773 340 335.727 348.954 335.727 360C335.727 371.046 326.773 380 315.727 380Z"
+            fill="#FFE470"
+          />
+          <path
+            d="M252.273 240H172.273C161.227 240 152.273 231.046 152.273 220C152.273 208.954 161.227 200 172.273 200H252.273C263.319 200 272.273 208.954 272.273 220C272.273 231.046 263.319 240 252.273 240Z"
+            fill="#80D261"
+          />
+          <path
+            d="M352.273 240H272.273C261.227 240 252.273 231.046 252.273 220C252.273 208.954 261.227 200 272.273 200H352.273C363.319 200 372.273 208.954 372.273 220C372.273 231.046 363.319 240 352.273 240Z"
+            fill="#FF4A4A"
+          />
+        </svg>
+      </div>
+
+      <div id="salad" class="food-item">
+        <svg
+          viewBox="0 0 512 512"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <ellipse
+            cx="256"
+            cy="256"
+            rx="200"
+            ry="150"
+            fill="#A3E635"
+            opacity="0.7"
+          />
+          <path
+            d="M296.348 187.826C296.348 206.064 281.716 220.87 263.478 220.87C245.24 220.87 230.609 206.064 230.609 187.826C230.609 169.588 245.24 154.783 263.478 154.783C281.716 154.783 296.348 169.588 296.348 187.826Z"
+            fill="#FFCE00"
+          />
+          <path
+            d="M329.391 253.565C329.391 271.803 314.76 286.609 296.522 286.609C278.284 286.609 263.652 271.803 263.652 253.565C263.652 235.327 278.284 220.522 296.522 220.522C314.76 220.522 329.391 235.327 329.391 253.565Z"
+            fill="#FF4A4A"
+          />
+          <path
+            d="M263.478 319.304C263.478 337.543 248.847 352.348 230.609 352.348C212.371 352.348 197.739 337.543 197.739 319.304C197.739 301.066 212.371 286.261 230.609 286.261C248.847 286.261 263.478 301.066 263.478 319.304Z"
+            fill="#80D261"
+          />
+          <path
+            d="M197.391 253.565C197.391 271.803 182.76 286.609 164.522 286.609C146.284 286.609 131.652 271.803 131.652 253.565C131.652 235.327 146.284 220.522 164.522 220.522C182.76 220.522 197.391 235.327 197.391 253.565Z"
+            fill="#80D261"
+          />
+          <path
+            d="M230.435 187.826C230.435 206.064 215.803 220.87 197.565 220.87C179.327 220.87 164.696 206.064 164.696 187.826C164.696 169.588 179.327 154.783 197.565 154.783C215.803 154.783 230.435 169.588 230.435 187.826Z"
+            fill="#FF4A4A"
+          />
+          <path
+            d="M329.391 319.304C329.391 337.543 314.76 352.348 296.522 352.348C278.284 352.348 263.652 337.543 263.652 319.304C263.652 301.066 278.284 286.261 296.522 286.261C314.76 286.261 329.391 301.066 329.391 319.304Z"
+            fill="#FFCE00"
+          />
+          <path
+            d="M362.435 253.565C362.435 271.803 347.803 286.609 329.565 286.609C311.327 286.609 296.696 271.803 296.696 253.565C296.696 235.327 311.327 220.522 329.565 220.522C347.803 220.522 362.435 235.327 362.435 253.565Z"
+            fill="#80D261"
+          />
+        </svg>
+      </div>
+
+      <div id="noodles" class="food-item">
+        <svg
+          viewBox="0 0 512 512"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <ellipse cx="256" cy="256" rx="150" ry="150" fill="#FFF7E6" />
+          <path
+            d="M256 135C256 130.029 259.029 126 264 126H270C274.971 126 279 129.029 279 134V376C279 380.971 274.971 385 270 385H264C259.029 385 256 380.971 256 376V135Z"
+            fill="#FFCE00"
+          />
+          <path
+            d="M279 135C279 130.029 282.029 126 287 126H293C297.971 126 302 129.029 302 134V376C302 380.971 297.971 385 293 385H287C282.029 385 279 380.971 279 376V135Z"
+            fill="#FFCE00"
+          />
+          <path
+            d="M233 135C233 130.029 236.029 126 241 126H247C251.971 126 256 129.029 256 134V376C256 380.971 251.971 385 247 385H241C236.029 385 233 380.971 233 376V135Z"
+            fill="#FFCE00"
+          />
+          <path
+            d="M210 135C210 130.029 213.029 126 218 126H224C228.971 126 233 129.029 233 134V376C233 380.971 228.971 385 224 385H218C213.029 385 210 380.971 210 376V135Z"
+            fill="#FFCE00"
+          />
+          <path
+            d="M302 135C302 130.029 305.029 126 310 126H316C320.971 126 325 129.029 325 134V376C325 380.971 320.971 385 316 385H310C305.029 385 302 380.971 302 376V135Z"
+            fill="#FFCE00"
+          />
+          <ellipse cx="269" cy="256" rx="90" ry="20" fill="#FF4A4A" />
+          <path
+            d="M200 256C200 250.477 224.624 246 255 246C285.376 246 310 250.477 310 256"
+            stroke="#D10000"
+            stroke-width="2"
+          />
+          <ellipse cx="244" cy="236" rx="20" ry="20" fill="#80D261" />
+          <ellipse cx="304" cy="236" rx="15" ry="15" fill="#D10000" />
+          <ellipse
+            cx="224"
+            cy="266"
+            rx="12"
+            ry="12"
+            fill="#000000"
+            fill-opacity="0.3"
+          />
+          <ellipse
+            cx="274"
+            cy="276"
+            rx="10"
+            ry="10"
+            fill="#000000"
+            fill-opacity="0.3"
+          />
+        </svg>
+      </div>
+    </section>
+
+    <script>
+      // Animation script for header scroll effect
+      window.addEventListener("scroll", function () {
+        const header = document.querySelector(".header");
+        if (window.scrollY > 50) {
+          header.style.padding = "15px 40px";
+          header.style.boxShadow = "0 2px 15px rgba(0, 0, 0, 0.1)";
+        } else {
+          header.style.padding = "20px 40px";
+          header.style.boxShadow = "0 2px 10px rgba(0, 0, 0, 0.1)";
+        }
+      });
+
+      // Additional animation for food items
+      const foodItems = document.querySelectorAll(".food-item");
+
+      function animateFoodItems() {
+        foodItems.forEach((item) => {
+          setTimeout(() => {
+            item.style.opacity = "1";
+            item.style.animation = "float 15s infinite ease-in-out";
+          }, Math.random() * 2000);
+        });
+      }
+
+      window.onload = function () {
+        animateFoodItems();
+      };
+    </script>
+  </body>
+</html>

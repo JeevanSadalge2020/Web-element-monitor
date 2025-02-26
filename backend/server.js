@@ -4,6 +4,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const dotenv = require("dotenv");
+const pageContextRoutes = require("./routes/pageContextRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -30,15 +31,28 @@ app.get("/", (req, res) => {
   res.send("Web Element Monitor API is running");
 });
 
+app.use("/api/page-contexts", pageContextRoutes);
+
 // Connect to MongoDB
+// Update your MongoDB connection code in server.js
 const connectDB = async () => {
   try {
+    console.log("Attempting to connect to MongoDB...");
     await mongoose.connect(
-      process.env.MONGO_URI || "mongodb://localhost:27017/wem"
+      process.env.MONGO_URI || "mongodb://localhost:27017/wem",
+      {
+        serverSelectionTimeoutMS: 5000, // Lower timeout for faster feedback
+        connectTimeoutMS: 10000,
+      }
     );
     console.log("MongoDB connected successfully");
   } catch (error) {
     console.error("MongoDB connection error:", error.message);
+    console.error(
+      "Connection details:",
+      process.env.MONGO_URI || "mongodb://localhost:27017/wem"
+    );
+    console.error("Make sure MongoDB is running and accessible");
     process.exit(1);
   }
 };
