@@ -34,6 +34,10 @@ const connectDB = async () => {
 // Run the connection
 connectDB();
 
+// Add this after the existing middleware setup
+const siteRoutes = require("./routes/siteRoutes");
+app.use("/api/sites", siteRoutes);
+
 // Start server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
