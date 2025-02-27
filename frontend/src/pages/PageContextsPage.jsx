@@ -158,13 +158,12 @@ const PageContextsPage = () => {
                       >
                         Delete
                       </button>
-                      <button
+                      <Link
+                        to={`/sites/${siteId}/pages/${page._id}/elements`}
                         className="btn btn-sm btn-outline-secondary"
-                        disabled
-                        title="Coming soon in the next phase"
                       >
                         Elements
-                      </button>
+                      </Link>
                     </div>
                   </td>
                 </tr>

@@ -7,6 +7,11 @@ import PageContextsPage from "./pages/PageContextsPage";
 import AddPageContextPage from "./pages/AddPageContextPage";
 import EditPageContextPage from "./pages/EditPageContextPage";
 
+// Add these imports at the top of your App.jsx file
+import ElementsPage from "./pages/ElementsPage";
+import AddElementPage from "./pages/AddElementPage";
+import EditElementPage from "./pages/EditElementPage";
+
 // Import Pages
 import SitesPage from "./pages/sitesPage";
 import AddSitePage from "./pages/AddSitePage";
@@ -90,6 +95,19 @@ function App() {
         <Route
           path="/sites/:siteId/pages/:pageId/edit"
           element={<EditPageContextPage />}
+        />
+        // In the Routes section in App.jsx, add these new routes
+        <Route
+          path="/sites/:siteId/pages/:pageId/elements"
+          element={<ElementsPage />}
+        />
+        <Route
+          path="/sites/:siteId/pages/:pageId/elements/new"
+          element={<AddElementPage />}
+        />
+        <Route
+          path="/sites/:siteId/pages/:pageId/elements/:elementId/edit"
+          element={<EditElementPage />}
         />
       </Routes>
     </Router>

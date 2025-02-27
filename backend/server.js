@@ -33,6 +33,12 @@ app.get("/", (req, res) => {
 
 app.use("/api/page-contexts", pageContextRoutes);
 
+const elementRoutes = require("./routes/elementRoutes");
+app.use("/api/elements", elementRoutes);
+
+const elementPickerRoutes = require("./routes/elementPickerRoutes");
+app.use("/api/element-picker", elementPickerRoutes);
+
 // Connect to MongoDB
 // Update your MongoDB connection code in server.js
 const connectDB = async () => {
