@@ -20,11 +20,110 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
   };
 
   // Helper to show what changed
+  // File: frontend/src/components/ElementChangeDetailsModal.jsx
+  // Update the renderChangeDetails function to include complete selector information
+
   const renderChangeDetails = () => {
     if (!result.changes) return <div>No change details available</div>;
 
     return (
       <div>
+        {/* Selectors Section - Show ALL selectors */}
+        <div className="mb-3">
+          <h6>Selectors Status</h6>
+          <table className="table table-sm table-bordered">
+            <thead>
+              <tr>
+                <th>Selector Type</th>
+                <th>Value</th>
+                <th>Status</th>
+                <th>Priority</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              {/* ID Selector */}
+              <tr>
+                <td>ID</td>
+                <td className="text-break">
+                  {result.element?.selectors?.id
+                    ? `#${result.element.selectors.id}`
+                    : "N/A"}
+                </td>
+                <td>
+                  {result.selectorResults?.id !== undefined ? (
+                    getSelectorStatusBadge(
+                      result.selectorResults.id ? "success" : "not_found"
+                    )
+                  ) : (
+                    <span className="badge bg-secondary">Not Tested</span>
+                  )}
+                </td>
+                <td>1</td>
+                <td>
+                  {result.selectorDetails?.id?.note ||
+                    result.selectorDetails?.id?.message ||
+                    (result.selectorResults?.id === false
+                      ? "Selector failed to find element"
+                      : "")}
+                </td>
+              </tr>
+
+              {/* CSS Selector */}
+              <tr>
+                <td>CSS</td>
+                <td className="text-break">
+                  {result.element?.selectors?.css || "N/A"}
+                </td>
+                <td>
+                  {result.selectorResults?.css !== undefined ? (
+                    getSelectorStatusBadge(
+                      result.selectorResults.css ? "success" : "not_found"
+                    )
+                  ) : (
+                    <span className="badge bg-secondary">Not Tested</span>
+                  )}
+                </td>
+                <td>2</td>
+                <td>
+                  {result.selectorDetails?.css?.note ||
+                    result.selectorDetails?.css?.message ||
+                    (result.selectorResults?.css === false
+                      ? "Selector failed to find element"
+                      : "")}
+                </td>
+              </tr>
+
+              {/* XPath Selector */}
+              <tr>
+                <td>XPATH</td>
+                <td className="text-break">
+                  {result.element?.selectors?.xpath || "N/A"}
+                </td>
+                <td>
+                  {result.selectorResults?.xpath !== undefined ? (
+                    getSelectorStatusBadge(
+                      result.selectorResults.xpath ? "success" : "not_found"
+                    )
+                  ) : (
+                    <span className="badge bg-secondary">Not Tested</span>
+                  )}
+                </td>
+                <td>3</td>
+                <td>
+                  {result.selectorDetails?.xpath?.note ||
+                    result.selectorDetails?.xpath?.message ||
+                    (result.selectorResults?.xpath === false
+                      ? "Selector failed to find element"
+                      : "")}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        {/* Additional change information sections */}
+        {/* Content Changes */}
         {result.changes.content && (
           <div className="mb-3">
             <h6>Content Changes</h6>
@@ -122,6 +221,7 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
           </div>
         )}
 
+        {/* Position/Size Changes */}
         {result.changes.position && (
           <div className="mb-3">
             <h6>Position/Size Changes</h6>
@@ -216,6 +316,7 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
           </div>
         )}
 
+        {/* Attribute Changes */}
         {result.changes.attributes &&
           Object.keys(result.changes.attributes).length > 0 && (
             <div className="mb-3">
@@ -306,71 +407,14 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
           </div>
         )}
 
-        {/* Selectors Section */}
-        <div className="mb-3">
-          <h6>Selectors Status</h6>
-          <table className="table table-sm table-bordered">
-            <thead>
-              <tr>
-                <th>Selector Type</th>
-                <th>Value</th>
-                <th>Status</th>
-                <th>Priority</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {result.selectorDetails &&
-                Object.entries(result.selectorDetails).map(
-                  ([type, details]) => (
-                    <tr key={type}>
-                      <td>{type.toUpperCase()}</td>
-                      <td className="text-break">
-                        {details.selector ||
-                          (type === "id"
-                            ? "#" + result.element?.selectors?.id
-                            : type === "css"
-                            ? result.element?.selectors?.css
-                            : type === "xpath"
-                            ? result.element?.selectors?.xpath
-                            : "N/A")}
-                      </td>
-                      <td>{getSelectorStatusBadge(details.status)}</td>
-                      <td>{details.priority}</td>
-                      <td>{details.note || details.message || ""}</td>
-                    </tr>
-                  )
-                )}
-              {!result.selectorDetails &&
-                result.selectorResults &&
-                Object.entries(result.selectorResults).map(
-                  ([type, success]) => (
-                    <tr key={type}>
-                      <td>{type.toUpperCase()}</td>
-                      <td className="text-break">
-                        {type === "id"
-                          ? "#" + result.element?.selectors?.id
-                          : type === "css"
-                          ? result.element?.selectors?.css
-                          : type === "xpath"
-                          ? result.element?.selectors?.xpath
-                          : "N/A"}
-                      </td>
-                      <td>
-                        {success ? (
-                          <span className="badge bg-success">Success</span>
-                        ) : (
-                          <span className="badge bg-warning">Failed</span>
-                        )}
-                      </td>
-                      <td>{type === "id" ? 1 : type === "css" ? 2 : 3}</td>
-                      <td></td>
-                    </tr>
-                  )
-                )}
-            </tbody>
-          </table>
-        </div>
+        {/* Add a "No Changes Detected" message when element was found but no changes */}
+        {result.found && !result.changed && (
+          <div className="alert alert-success">
+            <i className="bi bi-check-circle-fill me-2"></i>
+            No changes detected in this element. All properties match the
+            previously recorded state.
+          </div>
+        )}
       </div>
     );
   };

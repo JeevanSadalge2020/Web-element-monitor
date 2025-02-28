@@ -1,0 +1,66 @@
+// File: test-app/index.html
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Test App for Element Picker</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }
+      .header {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+      }
+      .button {
+        background-color: #4caf50;
+        color: white;
+        padding: 10px 15px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .info-box {
+        border: 1px solid #ddd;
+        padding: 15px;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1 id="main-title">Test App for Element Picker</h1>
+        <p>This page is used to test the Web Element Monitor element picker.</p>
+      </div>
+
+      <div class="content">
+        <button id="test-button" class="button">Test Button</button>
+
+        <div class="info-box">
+          <h2>Element Information</h2>
+          <p id="element-info">
+            Select an element to see information about it.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      document
+        .getElementById("test-button")
+        .addEventListener("click", function () {
+          document.getElementById("element-info").textContent =
+            "Button clicked at: " + new Date().toLocaleTimeString();
+        });
+    </script>
+  </body>
+</html>
