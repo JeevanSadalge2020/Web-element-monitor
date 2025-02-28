@@ -30,6 +30,21 @@ const elementPickerScript = `
   controlPanel.style.boxShadow = '0 2px 10px rgba(0, 0, 0, 0.1)';
   document.body.appendChild(controlPanel);
 
+  // Extract page context ID from URL
+  // This is a simplification - in a real app, this would be passed in a more robust way
+  let pageContextId = '';
+  const urlParams = new URLSearchParams(window.location.search);
+  if (urlParams.has('pageContextId')) {
+    pageContextId = urlParams.get('pageContextId');
+  } else {
+    // Try to extract from path (fallback)
+    const pathParts = window.location.pathname.split('/');
+    const pageContextIndex = pathParts.findIndex(part => part === 'pages');
+    if (pageContextIndex >= 0 && pageContextIndex < pathParts.length - 1) {
+      pageContextId = pathParts[pageContextIndex + 1];
+    }
+  }
+
   // Add controls
   controlPanel.innerHTML = \`
     <div style="font-weight: bold; margin-bottom: 10px;">Web Element Monitor</div>
@@ -43,7 +58,9 @@ const elementPickerScript = `
       <div id="wem-element-classes" style="margin-top: 5px;"></div>
       <div style="margin-top: 10px;">
         <input id="wem-element-name" type="text" placeholder="Element Name" style="width: 100%; padding: 5px; margin-bottom: 5px;">
+        <textarea id="wem-element-description" placeholder="Element Description" style="width: 100%; padding: 5px; margin-bottom: 5px; height: 60px;"></textarea>
         <button id="wem-save-element" style="background-color: #28a745; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">Save Element</button>
+        <div id="wem-save-status" style="margin-top: 5px; font-size: 12px;"></div>
       </div>
     </div>
   \`;
@@ -61,7 +78,9 @@ const elementPickerScript = `
   const elementId = document.getElementById('wem-element-id');
   const elementClasses = document.getElementById('wem-element-classes');
   const elementName = document.getElementById('wem-element-name');
+  const elementDescription = document.getElementById('wem-element-description');
   const saveButton = document.getElementById('wem-save-element');
+  const saveStatus = document.getElementById('wem-save-status');
 
   // Toggle picker activation
   toggleButton.addEventListener('click', function() {
@@ -139,6 +158,11 @@ const elementPickerScript = `
     }
     
     elementName.value = suggestedName;
+    elementDescription.value = 'Element picked from ' + document.title;
+    
+    // Clear previous save status
+    saveStatus.innerHTML = '';
+    saveStatus.style.color = '';
   });
 
   // Handle save button click
@@ -147,7 +171,9 @@ const elementPickerScript = `
     
     // Extract selectors
     const elementData = {
+      pageContextId: pageContextId,
       name: elementName.value || 'Unnamed Element',
+      description: elementDescription.value || 'Element picked from page',
       selectors: {
         css: getCssSelector(selectedElement),
         xpath: getXPath(selectedElement),
@@ -168,15 +194,50 @@ const elementPickerScript = `
       elementData.attributes[attr.name] = attr.value;
     }
     
-    // Send the data back to the server
-    // In a real implementation, we would send this to the server
-    console.log('Element data:', elementData);
-    alert('Element saved: ' + elementData.name);
-    
-    // Reset selection
-    selectedElement = null;
-    elementInfo.style.display = 'none';
+    // Send the data to the server
+    saveElement(elementData)
+      .then(response => {
+        console.log('Element saved successfully:', response);
+        saveStatus.innerHTML = 'Element saved successfully!';
+        saveStatus.style.color = 'green';
+        
+        // Reset selection after a brief delay to show success message
+        setTimeout(() => {
+          selectedElement = null;
+          elementInfo.style.display = 'none';
+        }, 2000);
+      })
+      .catch(error => {
+        console.error('Error saving element:', error);
+        saveStatus.innerHTML = 'Error saving element: ' + error.message;
+        saveStatus.style.color = 'red';
+      });
   });
+  
+  // Helper function to send element data to server
+  async function saveElement(elementData) {
+    const apiUrl = 'http://localhost:9000/api/element-picker/create-element'; // Replace with your actual API endpoint
+    
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(elementData),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to save element');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Failed to save element:', error);
+      throw error;
+    }
+  }
   
   // Helper function to generate CSS selector
   function getCssSelector(el) {

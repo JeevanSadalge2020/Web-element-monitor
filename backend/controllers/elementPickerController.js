@@ -87,4 +87,87 @@ exports.launchElementPicker = async (req, res) => {
   }
 };
 
-// Other controller methods remain the same...
+// Close browser
+exports.closeBrowser = async (req, res) => {
+  try {
+    await browserService.cleanup();
+    res.status(200).json({ message: "Browser closed successfully" });
+  } catch (error) {
+    console.error("Error closing browser:", error);
+    res.status(500).json({
+      message: "Error closing browser",
+      error: error.message,
+    });
+  }
+};
+
+// Create a new element from picker data
+exports.createElementFromPicker = async (req, res) => {
+  try {
+    console.log("Received element data from picker:", req.body);
+
+    // Validate required fields
+    if (!req.body.pageContextId) {
+      return res.status(400).json({
+        message: "Page context ID is required",
+      });
+    }
+
+    if (!req.body.name) {
+      return res.status(400).json({
+        message: "Element name is required",
+      });
+    }
+
+    if (
+      !req.body.selectors ||
+      (!req.body.selectors.css &&
+        !req.body.selectors.xpath &&
+        !req.body.selectors.id)
+    ) {
+      return res.status(400).json({
+        message: "At least one selector (CSS, XPath, or ID) is required",
+      });
+    }
+
+    // Prepare the element data
+    const elementData = {
+      pageContextId: req.body.pageContextId,
+      name: req.body.name,
+      description: req.body.description || `Element picked from page`,
+      selectors: {
+        css: req.body.selectors.css || "",
+        xpath: req.body.selectors.xpath || "",
+        id: req.body.selectors.id || "",
+      },
+      content: req.body.content || "",
+      position: req.body.position || {
+        x: 0,
+        y: 0,
+        width: 0,
+        height: 0,
+      },
+      status: "active",
+    };
+
+    // Add attributes if provided
+    if (req.body.attributes && Object.keys(req.body.attributes).length > 0) {
+      elementData.attributes = new Map(Object.entries(req.body.attributes));
+    }
+
+    // Create the element
+    const newElement = await Element.create(elementData);
+    console.log("Element created successfully:", newElement._id);
+
+    res.status(201).json({
+      message: "Element created successfully",
+      element: newElement,
+    });
+  } catch (error) {
+    console.error("Error creating element from picker:", error);
+    res.status(500).json({
+      message: "Error creating element",
+      error: error.message,
+    });
+  }
+};

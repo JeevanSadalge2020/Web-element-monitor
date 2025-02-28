@@ -62,6 +62,14 @@ const MonitoringRunSchema = new mongoose.Schema(
           type: Date,
           default: Date.now,
         },
+        selectorResults: {
+          type: Map,
+          of: Boolean,
+        },
+        selectorDetails: {
+          type: Map,
+          of: mongoose.Schema.Types.Mixed,
+        },
       },
     ],
     summary: {

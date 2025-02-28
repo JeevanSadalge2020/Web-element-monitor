@@ -40,3 +40,13 @@
 .read-the-docs {
   color: #888;
 }
+
+/* Add this to frontend/src/App.css */
+
+.result-row:hover {
+  background-color: rgba(0, 123, 255, 0.1);
+}
+
+.result-row td {
+  vertical-align: middle;
+}

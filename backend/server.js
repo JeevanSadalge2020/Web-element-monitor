@@ -47,25 +47,60 @@ app.use("/api/monitoring", monitoringRoutes);
 
 // Connect to MongoDB
 // Update your MongoDB connection code in server.js
+// This is the MongoDB connection section from server.js
+// Replace the existing connectDB function with this one
+
 const connectDB = async () => {
-  try {
-    console.log("Attempting to connect to MongoDB...");
-    await mongoose.connect(
-      process.env.MONGO_URI || "mongodb://localhost:27017/wem",
-      {
-        serverSelectionTimeoutMS: 5000, // Lower timeout for faster feedback
-        connectTimeoutMS: 10000,
+  // Try 3 times to connect to MongoDB
+  let attempts = 0;
+  const maxAttempts = 3;
+
+  while (attempts < maxAttempts) {
+    try {
+      console.log(
+        `MongoDB connection attempt ${attempts + 1}/${maxAttempts}...`
+      );
+      await mongoose.connect(
+        process.env.MONGO_URI || "mongodb://localhost:27017/wem",
+        {
+          serverSelectionTimeoutMS: 5000,
+          connectTimeoutMS: 10000,
+          socketTimeoutMS: 45000,
+          family: 4, // Use IPv4, skip trying IPv6
+        }
+      );
+      console.log("MongoDB connected successfully");
+      return; // Connection successful, exit the function
+    } catch (error) {
+      attempts++;
+      console.error(
+        `MongoDB connection attempt ${attempts} failed:`,
+        error.message
+      );
+
+      if (attempts >= maxAttempts) {
+        console.error("All MongoDB connection attempts failed");
+        console.error(
+          "Connection details:",
+          process.env.MONGO_URI || "mongodb://localhost:27017/wem"
+        );
+        console.error("Make sure MongoDB is running and accessible");
+
+        // For demo purposes, we'll set up a mock database in memory
+        console.log("Setting up in-memory mock database for demo...");
+        global.MockDB = {
+          sites: [],
+          pageContexts: [],
+          elements: [],
+          monitoringRuns: [],
+        };
+        return;
       }
-    );
-    console.log("MongoDB connected successfully");
-  } catch (error) {
-    console.error("MongoDB connection error:", error.message);
-    console.error(
-      "Connection details:",
-      process.env.MONGO_URI || "mongodb://localhost:27017/wem"
-    );
-    console.error("Make sure MongoDB is running and accessible");
-    process.exit(1);
+
+      // Wait before trying again
+      console.log(`Waiting 3 seconds before next attempt...`);
+      await new Promise((resolve) => setTimeout(resolve, 3000));
+    }
   }
 };
 
