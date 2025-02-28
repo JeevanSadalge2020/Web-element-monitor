@@ -201,6 +201,10 @@ async function runMonitoring(monitoringRunId) {
       const page = await browserService.navigateToUrl(url);
 
       // Check each element
+      // In backend/controllers/monitoringController.js
+      // Inside the runMonitoring function:
+
+      // Check each element
       for (const element of elements) {
         summary.totalElements++;
 
@@ -209,44 +213,165 @@ async function runMonitoring(monitoringRunId) {
           elementId: element._id,
           pageContextId: pageContext._id,
           timestamp: new Date(),
+          selectorResults: {}, // Track results of each selector
+          selectorDetails: {}, // Store details about each selector
         };
 
         try {
-          // Try to find the element using available selectors
+          // Try to find the element using available selectors in priority order: ID > CSS > XPath
           let found = false;
           let elementHandle = null;
+          let foundBySelector = {};
+          let selectorDetails = {};
 
-          // Try each selector
+          // Priority 1: Try ID (most reliable)
           if (element.selectors.id) {
             try {
+              console.log(
+                `Trying to find element by ID: #${element.selectors.id}`
+              );
               elementHandle = await page.$(`#${element.selectors.id}`);
-              if (elementHandle) found = true;
-            } catch (err) {}
+              if (elementHandle) {
+                found = true;
+                foundBySelector.id = true;
+                selectorDetails.id = { status: "success", priority: 1 };
+              } else {
+                foundBySelector.id = false;
+                selectorDetails.id = { status: "not_found", priority: 1 };
+              }
+            } catch (err) {
+              console.log(`Error finding element by ID: ${err.message}`);
+              foundBySelector.id = false;
+              selectorDetails.id = {
+                status: "error",
+                message: err.message,
+                priority: 1,
+              };
+            }
           }
 
-          if (!found && element.selectors.css) {
+          // Priority 2: Try CSS
+          if (element.selectors.css && !elementHandle) {
             try {
-              elementHandle = await page.$(element.selectors.css);
-              if (elementHandle) found = true;
-            } catch (err) {}
-          }
-
-          if (!found && element.selectors.xpath) {
+              console.log(
+                `Trying to find element by CSS: ${element.selectors.css}`
+              );
+              const cssHandle = await page.$(element.selectors.css);
+              if (cssHandle) {
+                found = true;
+                foundBySelector.css = true;
+                selectorDetails.css = { status: "success", priority: 2 };
+                elementHandle = cssHandle;
+              } else {
+                foundBySelector.css = false;
+                selectorDetails.css = { status: "not_found", priority: 2 };
+              }
+            } catch (err) {
+              console.log(`Error finding element by CSS: ${err.message}`);
+              foundBySelector.css = false;
+              selectorDetails.css = {
+                status: "error",
+                message: err.message,
+                priority: 2,
+              };
+            }
+          } else if (element.selectors.css && elementHandle) {
+            // Test CSS selector even if we already found the element
             try {
-              elementHandle = await page.$(`xpath=${element.selectors.xpath}`);
-              if (elementHandle) found = true;
-            } catch (err) {}
+              const cssHandle = await page.$(element.selectors.css);
+              foundBySelector.css = !!cssHandle;
+              selectorDetails.css = {
+                status: cssHandle ? "success" : "not_found",
+                priority: 2,
+                note: "Element already found by higher priority selector",
+              };
+            } catch (err) {
+              foundBySelector.css = false;
+              selectorDetails.css = {
+                status: "error",
+                message: err.message,
+                priority: 2,
+                note: "Element already found by higher priority selector",
+              };
+            }
           }
 
-          // Set if element was found
+          // Priority 3: Try XPath (least reliable but most flexible)
+          if (element.selectors.xpath && !elementHandle) {
+            try {
+              console.log(
+                `Trying to find element by XPath: ${element.selectors.xpath}`
+              );
+              const xpathHandle = await page.$(
+                `xpath=${element.selectors.xpath}`
+              );
+              if (xpathHandle) {
+                found = true;
+                foundBySelector.xpath = true;
+                selectorDetails.xpath = { status: "success", priority: 3 };
+                elementHandle = xpathHandle;
+              } else {
+                foundBySelector.xpath = false;
+                selectorDetails.xpath = { status: "not_found", priority: 3 };
+              }
+            } catch (err) {
+              console.log(`Error finding element by XPath: ${err.message}`);
+              foundBySelector.xpath = false;
+              selectorDetails.xpath = {
+                status: "error",
+                message: err.message,
+                priority: 3,
+              };
+            }
+          } else if (element.selectors.xpath && elementHandle) {
+            // Test XPath selector even if we already found the element
+            try {
+              const xpathHandle = await page.$(
+                `xpath=${element.selectors.xpath}`
+              );
+              foundBySelector.xpath = !!xpathHandle;
+              selectorDetails.xpath = {
+                status: xpathHandle ? "success" : "not_found",
+                priority: 3,
+                note: "Element already found by higher priority selector",
+              };
+            } catch (err) {
+              foundBySelector.xpath = false;
+              selectorDetails.xpath = {
+                status: "error",
+                message: err.message,
+                priority: 3,
+                note: "Element already found by higher priority selector",
+              };
+            }
+          }
+
+          // Store selector results
+          resultEntry.selectorResults = foundBySelector;
+          resultEntry.selectorDetails = selectorDetails;
+
+          // Set if element was found by any selector
           resultEntry.found = found;
 
+          // Replace this section in runMonitoring function:
           if (found) {
-            // Extract current element properties
+            // Extract ALL current element properties
+            const currentTagName = await page.evaluate(
+              (el) => el.tagName.toLowerCase(),
+              elementHandle
+            );
+
             const currentContent = await page.evaluate(
               (el) => el.textContent.trim(),
               elementHandle
             );
+
+            const currentHTML = await page.evaluate((el) => {
+              return {
+                innerHTML: el.innerHTML,
+                outerHTML: el.outerHTML,
+              };
+            }, elementHandle);
 
             const currentPosition = await page.evaluate((el) => {
               const rect = el.getBoundingClientRect();
@@ -266,43 +391,84 @@ async function runMonitoring(monitoringRunId) {
               return attrs;
             }, elementHandle);
 
-            // Get changes compared to stored state
-            const changes = detectChanges(
-              element,
-              currentContent,
-              currentPosition,
-              currentAttributes
+            const currentClasses = await page.evaluate(
+              (el) => Array.from(el.classList),
+              elementHandle
             );
+
+            const currentParent = await page.evaluate((el) => {
+              if (!el.parentElement) return null;
+              return {
+                tagName: el.parentElement.tagName.toLowerCase(),
+                id: el.parentElement.id || "",
+                classes: Array.from(el.parentElement.classList),
+              };
+            }, elementHandle);
+
+            // Gather all current element data
+            const currentElementData = {
+              tagName: currentTagName,
+              content: currentContent,
+              innerHTML: currentHTML.innerHTML,
+              outerHTML: currentHTML.outerHTML,
+              position: currentPosition,
+              attributes: currentAttributes,
+              classes: currentClasses,
+              parent: currentParent,
+            };
+
+            // Get changes compared to stored state using enhanced detection
+            const changes = detectAllChanges(element, currentElementData);
 
             // Store change information
             resultEntry.changed = changes.hasChanged;
             resultEntry.changeType = changes.changeType;
             resultEntry.changes = changes.details;
 
-            // Update summary statistics
+            // Add selector status to changes
+            resultEntry.changes.selectors = {
+              details: selectorDetails,
+              anyFailed: Object.values(foundBySelector).some(
+                (result) => result === false
+              ),
+            };
+
+            // Count element as changed only if content/position/attributes changed
             if (changes.hasChanged) {
               summary.changedElements++;
             }
 
-            // Save current state to element history
+            // Save current state to element history with all new properties
             await Element.findByIdAndUpdate(element._id, {
               $push: {
                 previousStates: {
                   timestamp: new Date(),
                   content: currentContent,
+                  innerHTML: currentHTML.innerHTML,
+                  outerHTML: currentHTML.outerHTML,
                   position: currentPosition,
                   attributes: currentAttributes,
+                  tagName: currentTagName,
+                  classes: currentClasses,
+                  parent: currentParent,
                   status: changes.hasChanged ? "changed" : "active",
+                  selectorResults: foundBySelector,
+                  selectorDetails: selectorDetails,
                 },
               },
               content: currentContent,
+              innerHTML: currentHTML.innerHTML,
+              outerHTML: currentHTML.outerHTML,
               position: currentPosition,
               attributes: currentAttributes,
+              tagName: currentTagName,
+              classes: currentClasses,
+              parent: currentParent,
               status: changes.hasChanged ? "changed" : "active",
               lastChecked: new Date(),
             });
           } else {
-            // Element not found
+            // Element not found by any selector
             resultEntry.changeType = "disappeared";
             resultEntry.changed = true;
             summary.missingElements++;
@@ -356,70 +522,122 @@ async function runMonitoring(monitoringRunId) {
 }
 
 // Helper function to detect changes in an element
-function detectChanges(
-  element,
-  currentContent,
-  currentPosition,
-  currentAttributes
-) {
+// Replace the existing detectChanges function with this:
+function detectAllChanges(storedElement, currentElement) {
   const changes = {
     hasChanged: false,
     changeType: "none",
     details: {},
   };
 
+  // Check tag name changes
+  if (
+    storedElement.tagName &&
+    storedElement.tagName !== currentElement.tagName
+  ) {
+    changes.hasChanged = true;
+    if (changes.changeType === "none") changes.changeType = "tag";
+    else changes.changeType = "multiple";
+    changes.details.tag = {
+      previous: storedElement.tagName,
+      current: currentElement.tagName,
+    };
+  }
+
   // Check content changes
-  if (element.content !== currentContent) {
+  if (storedElement.content !== currentElement.content) {
     changes.hasChanged = true;
     if (changes.changeType === "none") changes.changeType = "content";
     else changes.changeType = "multiple";
     changes.details.content = {
-      previous: element.content,
-      current: currentContent,
+      previous: storedElement.content,
+      current: currentElement.content,
     };
   }
 
-  // Check position changes - we'll consider it a change if position moved more than 5px
-  // or size changed more than 10%
-  if (element.position) {
-    const xChanged = Math.abs(element.position.x - currentPosition.x) > 5;
-    const yChanged = Math.abs(element.position.y - currentPosition.y) > 5;
+  // Check HTML changes
+  if (storedElement.innerHTML !== currentElement.innerHTML) {
+    changes.hasChanged = true;
+    if (changes.changeType === "none") changes.changeType = "html";
+    else changes.changeType = "multiple";
+    changes.details.html = {
+      previous: storedElement.innerHTML,
+      current: currentElement.innerHTML,
+    };
+  }
+
+  // Check position changes - similar to your existing code
+  if (storedElement.position) {
+    const xChanged =
+      Math.abs(storedElement.position.x - currentElement.position.x) > 5;
+    const yChanged =
+      Math.abs(storedElement.position.y - currentElement.position.y) > 5;
     const widthChanged =
-      Math.abs(element.position.width - currentPosition.width) >
-      element.position.width * 0.1;
+      Math.abs(storedElement.position.width - currentElement.position.width) >
+      storedElement.position.width * 0.1;
     const heightChanged =
-      Math.abs(element.position.height - currentPosition.height) >
-      element.position.height * 0.1;
+      Math.abs(storedElement.position.height - currentElement.position.height) >
+      storedElement.position.height * 0.1;
 
     if (xChanged || yChanged || widthChanged || heightChanged) {
       changes.hasChanged = true;
       if (changes.changeType === "none") changes.changeType = "position";
       else changes.changeType = "multiple";
       changes.details.position = {
-        previous: element.position,
-        current: currentPosition,
+        previous: storedElement.position,
+        current: currentElement.position,
       };
     }
   }
 
-  // Check attributes changes - we'll focus on class, style, and aria attributes
-  // as these often indicate visual or accessibility changes
-  if (element.attributes && element.attributes.size > 0) {
+  // Check class changes
+  if (storedElement.classes && currentElement.classes) {
+    const storedClassesSet = new Set(storedElement.classes);
+    const currentClassesSet = new Set(currentElement.classes);
+
+    const addedClasses = currentElement.classes.filter(
+      (cls) => !storedClassesSet.has(cls)
+    );
+    const removedClasses = storedElement.classes.filter(
+      (cls) => !currentClassesSet.has(cls)
+    );
+
+    if (addedClasses.length > 0 || removedClasses.length > 0) {
+      changes.hasChanged = true;
+      if (changes.changeType === "none") changes.changeType = "class";
+      else changes.changeType = "multiple";
+      changes.details.classes = {
+        previous: storedElement.classes,
+        current: currentElement.classes,
+        added: addedClasses,
+        removed: removedClasses,
+      };
+    }
+  }
+
+  // Check attributes changes - similar to your existing code but more detailed
+  if (storedElement.attributes) {
     const attributeChanges = {};
     let hasAttributeChanges = false;
 
-    // Convert Map to object for easier comparison
+    // Convert Map to object for easier comparison if needed
     const previousAttributes = {};
-    element.attributes.forEach((value, key) => {
-      previousAttributes[key] = value;
-    });
+    if (storedElement.attributes instanceof Map) {
+      storedElement.attributes.forEach((value, key) => {
+        previousAttributes[key] = value;
+      });
+    } else {
+      // If it's already an object, use it directly
+      Object.assign(previousAttributes, storedElement.attributes);
+    }
 
     // Check for changed or added attributes
-    for (const [key, value] of Object.entries(currentAttributes)) {
+    for (const [key, value] of Object.entries(currentElement.attributes)) {
       if (!previousAttributes[key] || previousAttributes[key] !== value) {
         attributeChanges[key] = {
           previous: previousAttributes[key] || null,
           current: value,
+          changeType: !previousAttributes[key] ? "added" : "modified",
         };
         hasAttributeChanges = true;
       }
@@ -427,10 +645,11 @@ function detectChanges(
 
     // Check for removed attributes
     for (const key of Object.keys(previousAttributes)) {
-      if (!currentAttributes[key]) {
+      if (!currentElement.attributes[key]) {
         attributeChanges[key] = {
           previous: previousAttributes[key],
           current: null,
+          changeType: "removed",
         };
         hasAttributeChanges = true;
       }
@@ -441,6 +660,58 @@ function detectChanges(
       if (changes.changeType === "none") changes.changeType = "attribute";
       else changes.changeType = "multiple";
       changes.details.attributes = attributeChanges;
+    }
+  }
+
+  // Check parent element changes
+  if (storedElement.parent && currentElement.parent) {
+    const parentChanges = {};
+    let hasParentChanges = false;
+
+    if (storedElement.parent.tagName !== currentElement.parent.tagName) {
+      parentChanges.tagName = {
+        previous: storedElement.parent.tagName,
+        current: currentElement.parent.tagName,
+      };
+      hasParentChanges = true;
+    }
+
+    if (storedElement.parent.id !== currentElement.parent.id) {
+      parentChanges.id = {
+        previous: storedElement.parent.id,
+        current: currentElement.parent.id,
+      };
+      hasParentChanges = true;
+    }
+
+    // Check parent classes if available
+    if (storedElement.parent.classes && currentElement.parent.classes) {
+      const storedParentClasses = new Set(storedElement.parent.classes);
+      const currentParentClasses = new Set(currentElement.parent.classes);
+
+      const addedClasses = currentElement.parent.classes.filter(
+        (cls) => !storedParentClasses.has(cls)
+      );
+      const removedClasses = storedElement.parent.classes.filter(
+        (cls) => !currentParentClasses.has(cls)
+      );
+
+      if (addedClasses.length > 0 || removedClasses.length > 0) {
+        parentChanges.classes = {
+          previous: storedElement.parent.classes,
+          current: currentElement.parent.classes,
+          added: addedClasses,
+          removed: removedClasses,
+        };
+        hasParentChanges = true;
+      }
+    }
+
+    if (hasParentChanges) {
+      changes.hasChanged = true;
+      if (changes.changeType === "none") changes.changeType = "parent";
+      else changes.changeType = "multiple";
+      changes.details.parent = parentChanges;
     }
   }
 

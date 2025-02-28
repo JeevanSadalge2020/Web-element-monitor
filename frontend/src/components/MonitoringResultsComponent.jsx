@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import api from "../utils/api";
+import ElementChangeDetailsModal from "./ElementChangeDetailsModal";
 
 const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
   const [monitoringRun, setMonitoringRun] = useState(null);
@@ -10,6 +11,7 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
   const [error, setError] = useState(null);
   const [elements, setElements] = useState({});
   const [pageContexts, setPageContexts] = useState({});
+  const [selectedResult, setSelectedResult] = useState(null);
 
   // In the useEffect that fetches monitoring run data:
 
@@ -103,6 +105,36 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
       return () => clearInterval(interval);
     }
   }, [monitoringRun, monitoringRunId]);
+
+  // Handle viewing element details
+  const handleViewElementDetails = (result) => {
+    // Prepare the result object with additional info
+    const elementDetails =
+      elements[result.elementId] ||
+      (monitoringRun.elementDetails &&
+        monitoringRun.elementDetails[result.elementId]) ||
+      {};
+
+    const pageDetails =
+      pageContexts[result.pageContextId] ||
+      (monitoringRun.pageContextDetails &&
+        monitoringRun.pageContextDetails[result.pageContextId]) ||
+      {};
+
+    const enrichedResult = {
+      ...result,
+      element: elementDetails,
+      elementName: elementDetails.name || "Unknown Element",
+      pageName: pageDetails.name || "Unknown Page",
+    };
+
+    setSelectedResult(enrichedResult);
+  };
+
+  // Handle modal close
+  const handleCloseModal = () => {
+    setSelectedResult(null);
+  };
 
   if (loading) {
     return (
@@ -282,6 +314,7 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
                   <th>Page</th>
                   <th>Status</th>
                   <th>Changes</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,7 +333,7 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
                     {};
 
                   return (
-                    <tr key={index}>
+                    <tr key={index} className="result-row">
                       <td>
                         {elementDetails.name || (
                           <span className="text-muted">
@@ -341,6 +374,14 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
                           <span className="badge bg-success">No Changes</span>
                         )}
                       </td>
+                      <td>
+                        <button
+                          className="btn btn-sm btn-outline-info"
+                          onClick={() => handleViewElementDetails(result)}
+                        >
+                          View Details
+                        </button>
+                      </td>
                     </tr>
                   );
                 })}
@@ -358,6 +399,14 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
           Close
         </button>
       </div>
+
+      {/* Add the modal */}
+      {selectedResult && (
+        <ElementChangeDetailsModal
+          result={selectedResult}
+          onClose={handleCloseModal}
+        />
+      )}
     </div>
   );
 };

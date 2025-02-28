@@ -26,13 +26,21 @@ exports.launchElementPicker = async (req, res) => {
     }
 
     // Determine the full URL to navigate to
+    // In backend/controllers/elementPickerController.js
+    // In the launchElementPicker function:
+
+    // Determine the full URL to navigate to
+    // In the launchElementPicker function:
     let fullUrl;
     if (pageContext.fullUrl) {
-      fullUrl = pageContext.fullUrl;
+      const urlObj = new URL(pageContext.fullUrl);
+      urlObj.searchParams.append("pageContextId", pageContextId);
+      fullUrl = urlObj.toString();
     } else {
-      // Combine site URL with page context path
       try {
-        fullUrl = new URL(pageContext.url, site.url).toString();
+        const urlObj = new URL(pageContext.url, site.url);
+        urlObj.searchParams.append("pageContextId", pageContextId);
+        fullUrl = urlObj.toString();
       } catch (error) {
         console.error("Error constructing URL:", error);
         return res.status(400).json({

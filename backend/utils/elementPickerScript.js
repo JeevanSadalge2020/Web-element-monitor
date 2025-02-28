@@ -33,18 +33,17 @@ const elementPickerScript = `
   // Extract page context ID from URL
   // This is a simplification - in a real app, this would be passed in a more robust way
   let pageContextId = '';
-  const urlParams = new URLSearchParams(window.location.search);
-  if (urlParams.has('pageContextId')) {
-    pageContextId = urlParams.get('pageContextId');
-  } else {
-    // Try to extract from path (fallback)
-    const pathParts = window.location.pathname.split('/');
-    const pageContextIndex = pathParts.findIndex(part => part === 'pages');
-    if (pageContextIndex >= 0 && pageContextIndex < pathParts.length - 1) {
-      pageContextId = pathParts[pageContextIndex + 1];
-    }
+const urlParams = new URLSearchParams(window.location.search);
+if (urlParams.has('pageContextId')) {
+  pageContextId = urlParams.get('pageContextId');
+} else {
+  // Try to extract from path (fallback)
+  const pathParts = window.location.pathname.split('/');
+  const pageContextIndex = pathParts.findIndex(part => part === 'pages');
+  if (pageContextIndex >= 0 && pageContextIndex < pathParts.length - 1) {
+    pageContextId = pathParts[pageContextIndex + 1];
   }
-
+}
   // Add controls
   controlPanel.innerHTML = \`
     <div style="font-weight: bold; margin-bottom: 10px;">Web Element Monitor</div>

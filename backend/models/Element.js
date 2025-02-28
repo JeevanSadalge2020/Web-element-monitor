@@ -1,7 +1,3 @@
-// File: backend/models/Element.js
-
-const mongoose = require("mongoose");
-
 const ElementSchema = new mongoose.Schema(
   {
     pageContextId: {
@@ -24,15 +20,24 @@ const ElementSchema = new mongoose.Schema(
       css: { type: String, trim: true },
       id: { type: String, trim: true },
     },
-    // Element content and attributes
+    // Element content and attributes - ENHANCE THESE FIELDS
     content: { type: String },
     attributes: { type: Map, of: String, default: {} },
-    // Position and dimensions
     position: {
       x: Number,
       y: Number,
       width: Number,
       height: Number,
+    },
+    // ADD THESE NEW FIELDS
+    tagName: { type: String },
+    innerHTML: { type: String },
+    outerHTML: { type: String },
+    classes: [String],
+    parent: {
+      tagName: String,
+      id: String,
+      classes: [String],
     },
     // Status information
     status: {
@@ -43,7 +48,7 @@ const ElementSchema = new mongoose.Schema(
     lastChecked: {
       type: Date,
     },
-    // Store previous states for comparison
+    // Store previous states for comparison - UPDATE THIS STRUCTURE TOO
     previousStates: [
       {
         timestamp: Date,
@@ -55,11 +60,20 @@ const ElementSchema = new mongoose.Schema(
           width: Number,
           height: Number,
         },
+        tagName: String,
+        innerHTML: String,
+        outerHTML: String,
+        classes: [String],
+        parent: {
+          tagName: String,
+          id: String,
+          classes: [String],
+        },
         status: String,
+        selectorResults: Object,
+        selectorDetails: Object,
       },
     ],
   },
   { timestamps: true }
 );
-
-module.exports = mongoose.model("Element", ElementSchema);

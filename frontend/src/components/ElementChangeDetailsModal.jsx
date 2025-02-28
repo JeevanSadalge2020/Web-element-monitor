@@ -1,4 +1,4 @@
-// File: frontend/src/components/ElementChangeDetailsModal.jsx
+// Create this new file: frontend/src/components/ElementChangeDetailsModal.jsx
 
 import React from "react";
 
@@ -50,6 +50,75 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Tag Changes */}
+        {result.changes.tag && (
+          <div className="mb-3">
+            <h6>Tag Changes</h6>
+            <div className="alert alert-warning">
+              HTML tag changed from <code>{result.changes.tag.previous}</code>{" "}
+              to <code>{result.changes.tag.current}</code>
+            </div>
+          </div>
+        )}
+
+        {/* HTML Changes */}
+        {result.changes.html && (
+          <div className="mb-3">
+            <h6>HTML Structure Changes</h6>
+            <div className="row">
+              <div className="col-md-6">
+                <div className="card bg-light">
+                  <div className="card-header">Previous HTML</div>
+                  <div className="card-body">
+                    <pre className="mb-0 text-wrap">
+                      {result.changes.html.previous || "None"}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+              <div className="col-md-6">
+                <div className="card bg-light">
+                  <div className="card-header">Current HTML</div>
+                  <div className="card-body">
+                    <pre className="mb-0 text-wrap">
+                      {result.changes.html.current || "None"}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Class Changes */}
+        {result.changes.classes && (
+          <div className="mb-3">
+            <h6>CSS Classes Changes</h6>
+            {result.changes.classes.added &&
+              result.changes.classes.added.length > 0 && (
+                <div>
+                  <strong>Added Classes:</strong>
+                  <ul className="text-success">
+                    {result.changes.classes.added.map((cls, idx) => (
+                      <li key={idx}>{cls}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            {result.changes.classes.removed &&
+              result.changes.classes.removed.length > 0 && (
+                <div>
+                  <strong>Removed Classes:</strong>
+                  <ul className="text-danger">
+                    {result.changes.classes.removed.map((cls, idx) => (
+                      <li key={idx}>{cls}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
           </div>
         )}
 
@@ -157,6 +226,7 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
                     <th>Attribute</th>
                     <th>Previous</th>
                     <th>Current</th>
+                    <th>Change Type</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -170,6 +240,19 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
                         <td className="text-break">
                           {values.current || "None"}
                         </td>
+                        <td>
+                          <span
+                            className={`badge bg-${
+                              values.changeType === "added"
+                                ? "success"
+                                : values.changeType === "removed"
+                                ? "danger"
+                                : "warning"
+                            }`}
+                          >
+                            {values.changeType}
+                          </span>
+                        </td>
                       </tr>
                     )
                   )}
@@ -177,6 +260,51 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
               </table>
             </div>
           )}
+
+        {/* Parent Element Changes */}
+        {result.changes.parent && (
+          <div className="mb-3">
+            <h6>Parent Element Changes</h6>
+            <table className="table table-sm table-bordered">
+              <thead>
+                <tr>
+                  <th>Property</th>
+                  <th>Previous</th>
+                  <th>Current</th>
+                </tr>
+              </thead>
+              <tbody>
+                {result.changes.parent.tagName && (
+                  <tr>
+                    <td>Parent Tag</td>
+                    <td>{result.changes.parent.tagName.previous}</td>
+                    <td>{result.changes.parent.tagName.current}</td>
+                  </tr>
+                )}
+                {result.changes.parent.id && (
+                  <tr>
+                    <td>Parent ID</td>
+                    <td>{result.changes.parent.id.previous || "none"}</td>
+                    <td>{result.changes.parent.id.current || "none"}</td>
+                  </tr>
+                )}
+                {result.changes.parent.classes && (
+                  <tr>
+                    <td>Parent Classes</td>
+                    <td>
+                      {result.changes.parent.classes.previous?.join(", ") ||
+                        "none"}
+                    </td>
+                    <td>
+                      {result.changes.parent.classes.current?.join(", ") ||
+                        "none"}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
 
         {/* Selectors Section */}
         <div className="mb-3">
@@ -198,13 +326,14 @@ const ElementChangeDetailsModal = ({ result, onClose }) => {
                     <tr key={type}>
                       <td>{type.toUpperCase()}</td>
                       <td className="text-break">
-                        {type === "id"
-                          ? "#" + result.element?.selectors?.id
-                          : type === "css"
-                          ? result.element?.selectors?.css
-                          : type === "xpath"
-                          ? result.element?.selectors?.xpath
-                          : "N/A"}
+                        {details.selector ||
+                          (type === "id"
+                            ? "#" + result.element?.selectors?.id
+                            : type === "css"
+                            ? result.element?.selectors?.css
+                            : type === "xpath"
+                            ? result.element?.selectors?.xpath
+                            : "N/A")}
                       </td>
                       <td>{getSelectorStatusBadge(details.status)}</td>
                       <td>{details.priority}</td>
