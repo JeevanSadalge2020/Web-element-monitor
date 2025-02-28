@@ -69,60 +69,68 @@ const SitesPage = () => {
           No sites found. Click "Add New Site" to get started.
         </div>
       ) : (
-        <div className="row">
+        <div className="sites-grid animated fadeIn">
           {sites.map((site) => (
-            <div key={site._id} className="col-md-6 col-lg-4 mb-4">
-              <div className="card h-100">
-                <div className="card-body">
-                  <h5 className="card-title">{site.name}</h5>
-                  <p className="card-text">
-                    <small className="text-muted">
-                      <a
-                        href={site.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {site.url}
-                      </a>
-                    </small>
-                  </p>
-                  <div className="mb-2">
-                    <span className={`badge bg-${getBadgeColor(site.status)}`}>
-                      {site.status}
-                    </span>
-                  </div>
-                </div>
-                <div className="card-footer bg-transparent">
-                  <div className="d-flex flex-wrap gap-1 justify-content-between">
-                    <Link
-                      to={`/sites/${site._id}/edit`}
-                      className="btn btn-sm btn-outline-primary"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => handleDelete(site._id)}
-                      className="btn btn-sm btn-outline-danger"
-                    >
-                      Delete
-                    </button>
-                    <Link
-                      to={`/sites/${site._id}/pages`}
-                      className="btn btn-sm btn-outline-secondary"
-                    >
-                      Pages
-                    </Link>
-                    <Link
-                      to={`/sites/${site._id}/monitoring`}
-                      className="btn btn-sm btn-outline-info"
-                    >
-                      Monitoring
-                    </Link>
-                  </div>
+            <div key={site._id} className="site-card">
+              <div className="site-card-header">
+                <h5 className="site-card-title">{site.name}</h5>
+                <span className={`site-status ${site.status}`}>
+                  {site.status}
+                </span>
+              </div>
+
+              <div className="site-card-body">
+                <a
+                  href={site.url}
+                  className="site-url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <i className="bi bi-link-45deg me-1"></i> {site.url}
+                </a>
+              </div>
+
+              <div className="site-card-footer">
+                <div className="site-card-actions">
+                  <Link
+                    to={`/sites/${site._id}/edit`}
+                    className="btn btn-sm btn-outline-primary"
+                  >
+                    <i className="bi bi-pencil-square"></i> Edit
+                  </Link>
+
+                  <button
+                    onClick={() => handleDelete(site._id)}
+                    className="btn btn-sm btn-outline-danger"
+                  >
+                    <i className="bi bi-trash"></i> Delete
+                  </button>
+
+                  <Link
+                    to={`/sites/${site._id}/pages`}
+                    className="btn btn-sm btn-outline-secondary"
+                  >
+                    <i className="bi bi-files"></i> Pages
+                  </Link>
+
+                  <Link
+                    to={`/sites/${site._id}/monitoring`}
+                    className="btn btn-sm btn-outline-info"
+                  >
+                    <i className="bi bi-bar-chart"></i> Monitoring
+                  </Link>
                 </div>
               </div>
             </div>
           ))}
+
+          {/* Add New Site Card */}
+          <Link to="/sites/new" className="add-site-card animated pulse">
+            <div className="add-site-icon">
+              <i className="bi bi-plus-lg"></i>
+            </div>
+            <div className="add-site-text">Add New Site</div>
+          </Link>
         </div>
       )}
     </div>

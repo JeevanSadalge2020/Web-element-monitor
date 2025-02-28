@@ -119,23 +119,33 @@ const ElementsPage = () => {
         <h2>Elements for {pageContext?.name}</h2>
         <div>
           <button
-            className="btn btn-primary me-2"
+            className="element-picker-btn animated pulse"
             onClick={handleLaunchPicker}
             disabled={loading}
           >
-            {loading ? "Launching..." : "Launch Element Picker"}
+            {loading ? (
+              <>
+                <i className="bi bi-hourglass-split"></i> Launching...
+              </>
+            ) : (
+              <>
+                <i className="bi bi-eyeglasses"></i> Launch Element Picker
+              </>
+            )}
           </button>
+
           <Link
             to={`/sites/${siteId}/pages/${pageId}/elements/new`}
-            className="btn btn-outline-primary me-2"
+            className="btn btn-outline-primary ms-2"
           >
-            Add Element Manually
+            <i className="bi bi-plus-circle"></i> Add Element Manually
           </Link>
+
           <Link
             to={`/sites/${siteId}/monitoring`}
-            className="btn btn-outline-info"
+            className="btn btn-outline-info ms-2"
           >
-            View Monitoring
+            <i className="bi bi-bar-chart"></i> View Monitoring
           </Link>
         </div>
       </div>
@@ -143,78 +153,125 @@ const ElementsPage = () => {
       {error && <div className="alert alert-danger">{error}</div>}
 
       {elements.length === 0 && !loading ? (
-        <div className="alert alert-info">
-          No elements found for this page. Click "Launch Element Picker" to
-          visually select elements, or "Add Element Manually" to create one by
-          hand.
+        <div className="empty-state animated fadeIn">
+          <div className="empty-state-icon">
+            <i className="bi bi-layers"></i>
+          </div>
+          <h4 className="empty-state-title">No Elements Found</h4>
+          <p className="empty-state-description">
+            No elements found for this page. Click "Launch Element Picker" to
+            visually select elements, or "Add Element Manually" to create one by
+            hand.
+          </p>
+          <button
+            className="btn btn-primary"
+            onClick={handleLaunchPicker}
+            disabled={loading}
+          >
+            <i className="bi bi-eyeglasses me-2"></i>
+            Launch Element Picker
+          </button>
         </div>
       ) : (
-        <div className="table-responsive">
-          <table className="table table-striped table-hover">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Selectors</th>
-                <th>Status</th>
-                <th>Last Checked</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {elements.map((element) => (
-                <tr key={element._id}>
-                  <td>{element.name}</td>
-                  <td>{element.description || "-"}</td>
-                  <td>
-                    <small>
-                      {element.selectors.css && (
-                        <div>CSS: {element.selectors.css}</div>
-                      )}
-                      {element.selectors.xpath && (
-                        <div>XPath: {element.selectors.xpath}</div>
-                      )}
-                      {element.selectors.id && (
-                        <div>ID: {element.selectors.id}</div>
-                      )}
-                    </small>
-                  </td>
-                  <td>
-                    <span
-                      className={`badge bg-${getBadgeColor(element.status)}`}
-                    >
-                      {element.status}
-                    </span>
-                  </td>
-                  <td>
-                    {element.lastChecked
-                      ? new Date(element.lastChecked).toLocaleString()
-                      : "Never"}
-                  </td>
-                  <td>
-                    <div className="btn-group" role="group">
-                      <Link
-                        to={`/sites/${siteId}/pages/${pageId}/elements/${element._id}/edit`}
-                        className="btn btn-sm btn-outline-primary"
-                      >
-                        Edit
-                      </Link>
-                      <button
-                        onClick={() => handleDelete(element._id)}
-                        className="btn btn-sm btn-outline-danger"
-                      >
-                        Delete
-                      </button>
+        <div className="element-cards">
+          {elements.map((element, index) => (
+            <div
+              key={element._id}
+              className={`element-card ${element.status} animated fadeInUp`}
+              style={{ animationDelay: `${index * 0.1}s` }}
+            >
+              <div className="element-header">
+                <h5 className="element-title">
+                  <div className={`element-icon ${element.status}`}>
+                    <i className={getIconByStatus(element.status)}></i>
+                  </div>
+                  {element.name}
+                </h5>
+                <span className={`element-status-badge ${element.status}`}>
+                  {element.status}
+                </span>
+              </div>
+
+              <div className="element-body">
+                {element.description && (
+                  <div className="element-description">
+                    {element.description}
+                  </div>
+                )}
+
+                <div className="element-selectors">
+                  {element.selectors.css && (
+                    <div className="selector-item">
+                      <div className="selector-type">CSS</div>
+                      <div className="selector-value">
+                        {element.selectors.css}
+                      </div>
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                  {element.selectors.xpath && (
+                    <div className="selector-item">
+                      <div className="selector-type">XPath</div>
+                      <div className="selector-value">
+                        {element.selectors.xpath}
+                      </div>
+                    </div>
+                  )}
+                  {element.selectors.id && (
+                    <div className="selector-item">
+                      <div className="selector-type">ID</div>
+                      <div className="selector-value">
+                        {element.selectors.id}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="element-footer">
+                <div className="last-checked">
+                  {element.lastChecked
+                    ? `Last checked: ${new Date(
+                        element.lastChecked
+                      ).toLocaleString()}`
+                    : "Never checked"}
+                </div>
+
+                <div className="element-actions">
+                  <Link
+                    to={`/sites/${siteId}/pages/${pageId}/elements/${element._id}/edit`}
+                    className="btn btn-sm btn-outline-primary"
+                  >
+                    <i className="bi bi-pencil"></i> Edit
+                  </Link>
+                  <button
+                    onClick={() => handleDelete(element._id)}
+                    className="btn btn-sm btn-outline-danger"
+                  >
+                    <i className="bi bi-trash"></i> Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
+};
+
+const getIconByStatus = (status) => {
+  switch (status) {
+    case "active":
+      return "bi bi-check-circle";
+    case "changed":
+      return "bi bi-exclamation-triangle";
+    case "missing":
+      return "bi bi-x-circle";
+    case "error":
+      return "bi bi-question-circle";
+    default:
+      return "bi bi-dot";
+  }
 };
 
 // Helper function to determine badge color based on status

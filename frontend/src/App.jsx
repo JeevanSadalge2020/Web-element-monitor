@@ -23,6 +23,7 @@ const Navbar = () => (
   <nav className="navbar navbar-expand-lg navbar-dark bg-primary">
     <div className="container">
       <Link className="navbar-brand" to="/">
+        <i className="bi bi-braces-asterisk me-2"></i>
         Web Element Monitor
       </Link>
       <button
@@ -40,12 +41,12 @@ const Navbar = () => (
         <ul className="navbar-nav">
           <li className="nav-item">
             <Link className="nav-link" to="/">
-              Dashboard
+              <i className="bi bi-speedometer2 me-1"></i> Dashboard
             </Link>
           </li>
           <li className="nav-item">
             <Link className="nav-link" to="/sites">
-              Manage Sites
+              <i className="bi bi-globe me-1"></i> Manage Sites
             </Link>
           </li>
         </ul>
@@ -57,18 +58,48 @@ const Navbar = () => (
 // Dashboard component
 const Dashboard = () => (
   <div className="container mt-4">
-    <h2>Dashboard</h2>
-    <p>Welcome to Web Element Monitor</p>
-    <div className="row mt-4">
+    <div className="dashboard-header animated fadeInDown">
+      <h2 className="dashboard-title">
+        <i className="bi bi-speedometer2 me-2"></i> Dashboard
+      </h2>
+    </div>
+
+    <div className="stats-container animated fadeIn">
+      <div className="stat-card primary">
+        <div className="stat-value">5</div>
+        <div className="stat-label">Monitored Sites</div>
+        <i className="bi bi-globe stat-icon"></i>
+      </div>
+
+      <div className="stat-card success">
+        <div className="stat-value">24</div>
+        <div className="stat-label">Active Elements</div>
+        <i className="bi bi-check-circle stat-icon"></i>
+      </div>
+
+      <div className="stat-card warning">
+        <div className="stat-value">3</div>
+        <div className="stat-label">Changed Elements</div>
+        <i className="bi bi-exclamation-triangle stat-icon"></i>
+      </div>
+
+      <div className="stat-card danger">
+        <div className="stat-value">1</div>
+        <div className="stat-label">Missing Elements</div>
+        <i className="bi bi-x-circle stat-icon"></i>
+      </div>
+    </div>
+
+    <div className="row mt-4 animated fadeInUp">
       <div className="col-md-6">
-        <div className="card mb-4">
+        <div className="card shadow-hover">
           <div className="card-body">
             <h5 className="card-title">Get Started</h5>
             <p className="card-text">
               Begin by adding websites you want to monitor.
             </p>
             <Link to="/sites" className="btn btn-primary">
-              Manage Sites
+              <i className="bi bi-globe me-2"></i> Manage Sites
             </Link>
           </div>
         </div>

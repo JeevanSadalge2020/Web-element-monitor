@@ -13,8 +13,6 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
   const [pageContexts, setPageContexts] = useState({});
   const [selectedResult, setSelectedResult] = useState(null);
 
-  // In the useEffect that fetches monitoring run data:
-
   useEffect(() => {
     const fetchMonitoringRun = async () => {
       try {
@@ -138,21 +136,22 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
 
   if (loading) {
     return (
-      <div className="text-center p-4">
-        <div className="spinner-border" role="status">
+      <div className="loading-container animated fadeIn">
+        <div className="spinner-border text-primary" role="status">
           <span className="visually-hidden">Loading...</span>
         </div>
-        <p className="mt-2">Loading monitoring results...</p>
+        <p className="loading-text mt-3">Loading monitoring results...</p>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="alert alert-danger">
+      <div className="alert alert-danger animated fadeIn">
+        <i className="bi bi-exclamation-triangle-fill me-2"></i>
         {error}
         <button
-          className="btn btn-sm btn-outline-danger ms-2"
+          className="btn btn-sm btn-outline-danger ms-3"
           onClick={onClose}
         >
           Close
@@ -163,10 +162,11 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
 
   if (!monitoringRun) {
     return (
-      <div className="alert alert-info">
+      <div className="alert alert-info animated fadeIn">
+        <i className="bi bi-info-circle-fill me-2"></i>
         No monitoring data available.
         <button
-          className="btn btn-sm btn-outline-primary ms-2"
+          className="btn btn-sm btn-outline-primary ms-3"
           onClick={onClose}
         >
           Close
@@ -215,10 +215,29 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
     }
   };
 
+  // Get progress percentage for running monitors
+  const getProgressPercentage = () => {
+    if (monitoringRun.status !== "running" || !monitoringRun.results)
+      return 100;
+    if (!monitoringRun.summary || !monitoringRun.summary.totalElements)
+      return 0;
+
+    return Math.min(
+      Math.round(
+        (monitoringRun.results.length / monitoringRun.summary.totalElements) *
+          100
+      ),
+      100
+    );
+  };
+
   return (
-    <div className="card shadow-sm mb-4">
-      <div className="card-header d-flex justify-content-between align-items-center">
-        <h5 className="card-title mb-0">Monitoring Run Results</h5>
+    <div className="monitoring-panel animated fadeIn">
+      <div className="monitoring-panel-header">
+        <h5 className="monitoring-panel-title">
+          <i className="bi bi-graph-up me-2"></i>
+          Monitoring Run Results
+        </h5>
         <button
           type="button"
           className="btn-close"
@@ -226,88 +245,110 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
           onClick={onClose}
         ></button>
       </div>
-      <div className="card-body">
-        <div className="mb-4">
-          <div className="d-flex justify-content-between">
-            <span>
-              <strong>Status:</strong>{" "}
+
+      <div className="monitoring-panel-body">
+        <div className="run-timestamps">
+          <div className="timestamp-item">
+            <div className="timestamp-label">Started</div>
+            <div className="timestamp-value">
+              {formatDate(monitoringRun.startTime)}
+            </div>
+          </div>
+          <div className="timestamp-item">
+            <div className="timestamp-label">Status</div>
+            <div className="timestamp-value">
               <span
                 className={`badge bg-${getStatusBadgeColor(
                   monitoringRun.status
                 )}`}
               >
-                {monitoringRun.status}
+                {monitoringRun.status === "running" ? (
+                  <>
+                    <i className="bi bi-arrow-repeat me-1 animated spin infinite"></i>{" "}
+                    {monitoringRun.status}
+                  </>
+                ) : (
+                  monitoringRun.status
+                )}
               </span>
-            </span>
-            <span>
-              <strong>Run ID:</strong> {monitoringRun._id.substring(0, 8)}...
-            </span>
+            </div>
           </div>
-          <div className="d-flex justify-content-between mt-2">
-            <span>
-              <strong>Started:</strong> {formatDate(monitoringRun.startTime)}
-            </span>
-            <span>
-              <strong>Completed:</strong> {formatDate(monitoringRun.endTime)}
-            </span>
+          <div className="timestamp-item">
+            <div className="timestamp-label">Completed</div>
+            <div className="timestamp-value">
+              {monitoringRun.endTime
+                ? formatDate(monitoringRun.endTime)
+                : "In Progress"}
+            </div>
           </div>
         </div>
 
         {monitoringRun.status === "running" && (
-          <div className="alert alert-info">
-            <div className="d-flex align-items-center">
+          <div className="alert alert-info animated pulse">
+            <div className="d-flex align-items-center mb-2">
+              <div className="loading-dots me-2">
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <div>
+                Monitoring in progress... Please wait while we check your
+                elements.
+              </div>
+            </div>
+            <div className="progress" style={{ height: "8px" }}>
               <div
-                className="spinner-border spinner-border-sm me-2"
-                role="status"
+                className="progress-bar progress-bar-striped progress-bar-animated"
+                role="progressbar"
+                style={{ width: `${getProgressPercentage()}%` }}
+                aria-valuenow={getProgressPercentage()}
+                aria-valuemin="0"
+                aria-valuemax="100"
               ></div>
-              Monitoring in progress... Please wait while we check your
-              elements.
             </div>
           </div>
         )}
 
         {monitoringRun.status === "failed" && (
           <div className="alert alert-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
             <strong>Error:</strong>{" "}
             {monitoringRun.error || "Unknown error during monitoring"}
           </div>
         )}
 
         {monitoringRun.status === "completed" && monitoringRun.summary && (
-          <div className="mb-4">
-            <h6>Summary</h6>
-            <div className="d-flex flex-wrap gap-3">
-              <div className="border rounded p-2 flex-grow-1 text-center">
-                <div className="fw-bold">
-                  {monitoringRun.summary.totalElements}
-                </div>
-                <small>Total Elements</small>
+          <div className="run-summary animated fadeInUp">
+            <div className="summary-item">
+              <div className="summary-value">
+                {monitoringRun.summary.totalElements}
               </div>
-              <div className="border rounded p-2 flex-grow-1 text-center text-warning">
-                <div className="fw-bold">
-                  {monitoringRun.summary.changedElements}
-                </div>
-                <small>Changed</small>
+              <div className="summary-label">Total Elements</div>
+            </div>
+            <div className="summary-item changed">
+              <div className="summary-value">
+                {monitoringRun.summary.changedElements}
               </div>
-              <div className="border rounded p-2 flex-grow-1 text-center text-danger">
-                <div className="fw-bold">
-                  {monitoringRun.summary.missingElements}
-                </div>
-                <small>Missing</small>
+              <div className="summary-label">Changed</div>
+            </div>
+            <div className="summary-item missing">
+              <div className="summary-value">
+                {monitoringRun.summary.missingElements}
               </div>
-              <div className="border rounded p-2 flex-grow-1 text-center text-secondary">
-                <div className="fw-bold">
-                  {monitoringRun.summary.errorElements}
-                </div>
-                <small>Errors</small>
+              <div className="summary-label">Missing</div>
+            </div>
+            <div className="summary-item error">
+              <div className="summary-value">
+                {monitoringRun.summary.errorElements}
               </div>
+              <div className="summary-label">Errors</div>
             </div>
           </div>
         )}
 
         {monitoringRun.results && monitoringRun.results.length > 0 ? (
           <div className="table-responsive">
-            <table className="table table-sm table-hover">
+            <table className="table table-sm table-hover results-table">
               <thead className="table-light">
                 <tr>
                   <th>Element</th>
@@ -333,16 +374,33 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
                     {};
 
                   return (
-                    <tr key={index} className="result-row">
+                    <tr
+                      key={index}
+                      className={`result-row ${
+                        result.changed ? "elementChanged" : ""
+                      }`}
+                      onClick={() => handleViewElementDetails(result)}
+                    >
                       <td>
-                        {elementDetails.name || (
-                          <span className="text-muted">
-                            Unknown Element{" "}
-                            {result.elementId
-                              ? `(${result.elementId.substring(0, 6)}...)`
-                              : ""}
-                          </span>
-                        )}
+                        <div className="d-flex align-items-center">
+                          <div
+                            className={`status-indicator ${
+                              result.found
+                                ? result.changed
+                                  ? "warning"
+                                  : "success"
+                                : "danger"
+                            } me-2`}
+                          ></div>
+                          {elementDetails.name || (
+                            <span className="text-muted">
+                              Unknown Element{" "}
+                              {result.elementId
+                                ? `(${result.elementId.substring(0, 6)}...)`
+                                : ""}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td>
                         {pageDetails.name || (
@@ -356,9 +414,13 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
                       </td>
                       <td>
                         {result.found ? (
-                          <span className="badge bg-success">Found</span>
+                          <span className="badge bg-success">
+                            <i className="bi bi-check-circle me-1"></i> Found
+                          </span>
                         ) : (
-                          <span className="badge bg-danger">Missing</span>
+                          <span className="badge bg-danger">
+                            <i className="bi bi-x-circle me-1"></i> Missing
+                          </span>
                         )}
                       </td>
                       <td>
@@ -368,18 +430,39 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
                               result.changeType
                             )}`}
                           >
+                            {result.changeType === "content" && (
+                              <i className="bi bi-pencil me-1"></i>
+                            )}
+                            {result.changeType === "attribute" && (
+                              <i className="bi bi-braces me-1"></i>
+                            )}
+                            {result.changeType === "position" && (
+                              <i className="bi bi-arrows-move me-1"></i>
+                            )}
+                            {result.changeType === "disappeared" && (
+                              <i className="bi bi-eye-slash me-1"></i>
+                            )}
+                            {result.changeType === "multiple" && (
+                              <i className="bi bi-layers me-1"></i>
+                            )}
                             {result.changeType}
                           </span>
                         ) : (
-                          <span className="badge bg-success">No Changes</span>
+                          <span className="badge bg-success">
+                            <i className="bi bi-check-circle me-1"></i> No
+                            Changes
+                          </span>
                         )}
                       </td>
                       <td>
                         <button
                           className="btn btn-sm btn-outline-info"
-                          onClick={() => handleViewElementDetails(result)}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleViewElementDetails(result);
+                          }}
                         >
-                          View Details
+                          <i className="bi bi-eye me-1"></i> View Details
                         </button>
                       </td>
                     </tr>
@@ -390,13 +473,14 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
           </div>
         ) : (
           <div className="alert alert-warning">
+            <i className="bi bi-exclamation-circle me-2"></i>
             No results available for this monitoring run.
           </div>
         )}
       </div>
-      <div className="card-footer">
+      <div className="monitoring-panel-footer">
         <button className="btn btn-secondary" onClick={onClose}>
-          Close
+          <i className="bi bi-x-circle me-1"></i> Close
         </button>
       </div>
 
@@ -410,5 +494,18 @@ const MonitoringResultsComponent = ({ monitoringRunId, onClose }) => {
     </div>
   );
 };
+
+// Add some CSS for the spinning animation
+const style = document.createElement("style");
+style.textContent = `
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .spin {
+    animation: spin 1s linear infinite;
+  }
+`;
+document.head.appendChild(style);
 
 export default MonitoringResultsComponent;
