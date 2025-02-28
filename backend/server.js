@@ -6,6 +6,9 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const pageContextRoutes = require("./routes/pageContextRoutes");
 
+// Add this with your other requires at the top
+const monitoringRoutes = require("./routes/monitoringRoutes");
+
 // Load environment variables
 dotenv.config();
 
@@ -15,7 +18,7 @@ const app = express();
 // CORS configuration - Update this part
 app.use(
   cors({
-    origin: "http://localhost:3000", // Your frontend URL
+    origin: ["http://localhost:3000", "http://localhost:3001"], // Allow both ports
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
@@ -38,6 +41,9 @@ app.use("/api/elements", elementRoutes);
 
 const elementPickerRoutes = require("./routes/elementPickerRoutes");
 app.use("/api/element-picker", elementPickerRoutes);
+
+// Add this with your other route definitions
+app.use("/api/monitoring", monitoringRoutes);
 
 // Connect to MongoDB
 // Update your MongoDB connection code in server.js

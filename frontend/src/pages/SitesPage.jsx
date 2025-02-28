@@ -92,25 +92,33 @@ const SitesPage = () => {
                     </span>
                   </div>
                 </div>
-                <div className="card-footer bg-transparent d-flex justify-content-between">
-                  <Link
-                    to={`/sites/${site._id}/edit`}
-                    className="btn btn-sm btn-outline-primary"
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    onClick={() => handleDelete(site._id)}
-                    className="btn btn-sm btn-outline-danger"
-                  >
-                    Delete
-                  </button>
-                  <Link
-                    to={`/sites/${site._id}/pages`}
-                    className="btn btn-sm btn-outline-secondary"
-                  >
-                    Manage Pages
-                  </Link>
+                <div className="card-footer bg-transparent">
+                  <div className="d-flex flex-wrap gap-1 justify-content-between">
+                    <Link
+                      to={`/sites/${site._id}/edit`}
+                      className="btn btn-sm btn-outline-primary"
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      onClick={() => handleDelete(site._id)}
+                      className="btn btn-sm btn-outline-danger"
+                    >
+                      Delete
+                    </button>
+                    <Link
+                      to={`/sites/${site._id}/pages`}
+                      className="btn btn-sm btn-outline-secondary"
+                    >
+                      Pages
+                    </Link>
+                    <Link
+                      to={`/sites/${site._id}/monitoring`}
+                      className="btn btn-sm btn-outline-info"
+                    >
+                      Monitoring
+                    </Link>
+                  </div>
                 </div>
               </div>
             </div>

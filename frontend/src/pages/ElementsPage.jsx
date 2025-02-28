@@ -49,8 +49,6 @@ const ElementsPage = () => {
     }
   };
 
-  // In frontend/src/pages/ElementsPage.jsx, update the handleLaunchPicker function:
-
   const handleLaunchPicker = async () => {
     try {
       setLoading(true);
@@ -129,9 +127,15 @@ const ElementsPage = () => {
           </button>
           <Link
             to={`/sites/${siteId}/pages/${pageId}/elements/new`}
-            className="btn btn-outline-primary"
+            className="btn btn-outline-primary me-2"
           >
             Add Element Manually
+          </Link>
+          <Link
+            to={`/sites/${siteId}/monitoring`}
+            className="btn btn-outline-info"
+          >
+            View Monitoring
           </Link>
         </div>
       </div>

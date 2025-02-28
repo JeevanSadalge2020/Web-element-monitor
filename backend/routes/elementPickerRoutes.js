@@ -13,7 +13,7 @@ router.post(
 // Close browser
 router.post("/close", elementPickerController.closeBrowser);
 
-// Add this new route to the file
+// Fix this route - the controller function might be undefined
 router.post("/create-element", elementPickerController.createElementFromPicker);
 
 module.exports = router;

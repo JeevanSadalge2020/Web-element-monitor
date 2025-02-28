@@ -11,9 +11,10 @@ import EditPageContextPage from "./pages/EditPageContextPage";
 import ElementsPage from "./pages/ElementsPage";
 import AddElementPage from "./pages/AddElementPage";
 import EditElementPage from "./pages/EditElementPage";
+import MonitoringPage from "./pages/MonitoringPage"; // Add this new import
 
 // Import Pages
-import SitesPage from "./pages/sitesPage";
+import SitesPage from "./pages/SitesPage";
 import AddSitePage from "./pages/AddSitePage";
 import EditSitePage from "./pages/EditSitePage";
 
@@ -86,7 +87,6 @@ function App() {
         <Route path="/sites" element={<SitesPage />} />
         <Route path="/sites/new" element={<AddSitePage />} />
         <Route path="/sites/:id/edit" element={<EditSitePage />} />
-        {/* Add these new routes */}
         <Route path="/sites/:siteId/pages" element={<PageContextsPage />} />
         <Route
           path="/sites/:siteId/pages/new"
@@ -96,7 +96,6 @@ function App() {
           path="/sites/:siteId/pages/:pageId/edit"
           element={<EditPageContextPage />}
         />
-        // In the Routes section in App.jsx, add these new routes
         <Route
           path="/sites/:siteId/pages/:pageId/elements"
           element={<ElementsPage />}
@@ -109,6 +108,8 @@ function App() {
           path="/sites/:siteId/pages/:pageId/elements/:elementId/edit"
           element={<EditElementPage />}
         />
+        {/* Add the new monitoring route */}
+        <Route path="/sites/:siteId/monitoring" element={<MonitoringPage />} />
       </Routes>
     </Router>
   );

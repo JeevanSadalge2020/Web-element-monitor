@@ -10,42 +10,84 @@ class BrowserService {
 
   async initialize() {
     if (!this.browser) {
-      this.browser = await chromium.launch({
-        headless: false, // For demo purposes, we'll show the browser
-      });
+      try {
+        console.log("Initializing browser...");
+        this.browser = await chromium.launch({
+          headless: false, // For demo purposes
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--no-first-run",
+            "--no-zygote",
+            "--disable-gpu",
+          ],
+          timeout: 30000, // Increase timeout to 30 seconds
+        });
+        console.log("Browser initialized successfully");
+      } catch (error) {
+        console.error("Failed to initialize browser:", error);
+        throw new Error(`Browser initialization failed: ${error.message}`);
+      }
     }
     return this.browser;
   }
 
   async getContext() {
     if (!this.context) {
-      const browser = await this.initialize();
-      this.context = await browser.newContext({
-        viewport: { width: 1280, height: 720 },
-      });
+      try {
+        const browser = await this.initialize();
+        this.context = await browser.newContext({
+          viewport: { width: 1280, height: 720 },
+          acceptDownloads: true,
+        });
+      } catch (error) {
+        console.error("Failed to create browser context:", error);
+        throw new Error(`Context creation failed: ${error.message}`);
+      }
     }
     return this.context;
   }
 
   async getPage() {
-    const context = await this.getContext();
-    return await context.newPage();
+    try {
+      const context = await this.getContext();
+      return await context.newPage();
+    } catch (error) {
+      console.error("Failed to create page:", error);
+      throw new Error(`Page creation failed: ${error.message}`);
+    }
   }
 
   async navigateToUrl(url) {
-    const page = await this.getPage();
-    await page.goto(url, { waitUntil: "domcontentloaded" });
-    return page;
+    try {
+      console.log(`Navigating to URL: ${url}`);
+      const page = await this.getPage();
+      await page.goto(url, {
+        waitUntil: "domcontentloaded",
+        timeout: 60000, // Increase timeout to 60 seconds
+      });
+      return page;
+    } catch (error) {
+      console.error(`Failed to navigate to ${url}:`, error);
+      throw new Error(`Navigation failed: ${error.message}`);
+    }
   }
 
   async cleanup() {
-    if (this.context) {
-      await this.context.close();
-      this.context = null;
-    }
-    if (this.browser) {
-      await this.browser.close();
-      this.browser = null;
+    try {
+      if (this.context) {
+        await this.context.close();
+        this.context = null;
+      }
+      if (this.browser) {
+        await this.browser.close();
+        this.browser = null;
+      }
+      console.log("Browser resources cleaned up");
+    } catch (error) {
+      console.error("Error during cleanup:", error);
     }
   }
 }
